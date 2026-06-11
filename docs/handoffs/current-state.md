@@ -1,6 +1,6 @@
 # NEXW 自動化系統 — Current State
 
-**Last updated:** 2026-06-11(PR-D12 state-mirror + 全 repo 轉 private 前置 shipping;PR-22.1 v3.0 kickoff ✅ merged `925a491` #258;v3.0 階段 Sprint 23 待開工)
+**Last updated:** 2026-06-11(PR-D12-hotfix checkout@v5 shipping;PR-D12 state-mirror ✅ merged `69bf877` #259;v3.0 階段 Sprint 23 待開工)
 
 ## 1. 階段
 
@@ -23,9 +23,10 @@
 - **Sprint 16 ✅ Closed at 2026-06-08**(close report:[sprint-16-close-report.md](../sprints/sprint-16-close-report.md))— C1 Daily Briefing(每日各專案近況 Haiku 合成 → TG,失敗退純格式)+ H6 Auto Merge 4 道防護(merge 前 gate:no-conflict + tests-pass + human approval + DoD)+ H8b Flutter prompt readiness(pipeline 自動化延後至接第一個 Flutter 客戶)。3 PR 全 merged #236-#238。
 - **當前 Sprint:** **v3.0 階段 — Sprint 23 待開工**(Discord bot 地基 + central adapter)。v2.0 已封版(2026-06-09,18 Sprint 4-21 / 16-16 active 100%);**R-001 於 2026-06-11 廢止 30 天設計凍結提前解凍**(原至 2026-07-09)→ v3.0 即日動工,建造期新需求進 v4.0 候選池。live 進度見 [v3.0-progress.md](../sprints/v3.0-progress.md)。
 - **設計凍結:** 2026-06-09 啟動,30 天(至 2026-07-09)。期間新需求一律進 v3.0 候選池(`v2.0.md §13`,現 5 條:圖影片 model / 四種 PPT C3-C6 / D1 footer / B3 Proactive / A3 W-only 整合),**不擾動 v2.0**。凍結期滿評估候選池排 v3.0。
-- **當前 PR:** PR-D12 state 鏡射 public repo + 全 repo 轉 private 前置(shipping;過渡件/infra)— 全 repo 轉 private 是 merge 後 V4 驗收,不在本 PR scope
+- **當前 PR:** PR-D12-hotfix actions/checkout@v4→v5(shipping;一行 CI fix)— GitHub 2025-06-16 切 Node 24,checkout@v4 deprecated
 - **Next action:** Sprint 23 DB1 — nexw-discord-bot container(待開工);merge 後 TEEMO 跑 V1-V5 驗收(V1 workflow 綠 → V2/V3 SOP 預演 → **V4 全 repo 轉 private** → V5 全面回歸)
-- **(shipping)PR-D12** state 鏡射 public repo + 全 repo 轉 private 前置(**過渡件,Sprint 23 DB5 後退役**)— 新 `.github/workflows/state-mirror.yml`(本 repo 首個 workflow):main push 動 state 三檔(current-state / v2.0-progress / v3.0-progress)→ 鏡射到 public `xxnexw/nexw-state-mirror`(保持相對路徑),讓「全 repo 轉 private 後」跨-chat 接手 SOP 仍能讀 state。機制 = B-1 GitHub Actions;`MIRROR_PUSH_TOKEN` 只經 secrets 引用、絕不 echo/log;有 diff 才 push(idempotent)。**順序鐵律:鏡射先活 → SOP 驗證 → 才轉 private。** forbidden 0 改:除 workflow + §6 docs 外 0 changes。⚠️ **merge 後 Actions 自動跑(V1)** → TEEMO 驗收 V1-V5(轉 private 在 V4,可逆回滾)。
+- **(shipping)PR-D12-hotfix** actions/checkout@v4→v5 — state-mirror workflow 的 checkout action 升版(GitHub 2025-06-16 Node 24 切換,v4 deprecated);唯一改動 1 行 + §6。merge 後 V1 workflow 應綠。
+- **(已 merged)PR-D12** state 鏡射 public repo + 全 repo 轉 private 前置 ✅ merged `69bf877`(#259)(**過渡件,Sprint 23 DB5 後退役**)— 新 `.github/workflows/state-mirror.yml`(本 repo 首個 workflow):main push 動 state 三檔(current-state / v2.0-progress / v3.0-progress)→ 鏡射到 public `xxnexw/nexw-state-mirror`(保持相對路徑),讓「全 repo 轉 private 後」跨-chat 接手 SOP 仍能讀 state。機制 = B-1 GitHub Actions;`MIRROR_PUSH_TOKEN` 只經 secrets 引用、絕不 echo/log;有 diff 才 push(idempotent)。**順序鐵律:鏡射先活 → SOP 驗證 → 才轉 private。** forbidden 0 改:除 workflow + §6 docs 外 0 changes。⚠️ **merge 後 Actions 自動跑(V1)** → TEEMO 驗收 V1-V5(轉 private 在 V4,可逆回滾)。
 - **(已 merged)PR-22.1** v3.0 kickoff ✅ merged `925a491`(#258)— v3.0.md 定稿進 repo(13 Sprint 22-34)+ v3.0-progress.md 建立 + Sprint 22 ✅ Closed + v2.0-progress 封存(self-stale 全翻 PR-21.2 → 610ba15#257)+ changelog R-001 kickoff 筆。
 - **(已 merged)PR-21.2** Sprint 21 Close + v2.0 封版 ✅ merged `610ba15`(#257)— v2.0 整體驗收通過(matrix + smoke 全綠 2026-06-09);Sprint 21 ✅ Closed + 進度條 16/16(100%)+ master 訴求表 hygiene 刷 + Sprint 7 header 補 ✅ Closed + self-stale 回填 PR-21.1 `2387e96`#256 + 新 `sprint-21-close-report.md`。
 - **(已 merged)PR-21.1** v2.0 整體驗收 ✅ merged `2387e96`(#256)— `v2.0-acceptance-report.md`(矩陣 + 15 條訴求 + KI + v3.0 移交 + smoke runbook)+ `v2.0.md §13` A3→v3.0。
@@ -829,9 +830,9 @@ V7-V16 Recon 才確認真實 cause 是 TG token polling 衝突。
 
 ---
 
-**Last updated**: 2026-06-11(PR-D12 state-mirror + 全 repo 轉 private 前置 shipping;PR-22.1 ✅ merged `925a491` #258;v3.0 階段 Sprint 23 待開工)
+**Last updated**: 2026-06-11(PR-D12-hotfix checkout@v5 shipping;PR-D12 state-mirror ✅ merged `69bf877` #259;v3.0 階段 Sprint 23 待開工)
 **當前 Sprint**: v3.0 階段 — Sprint 23 待開工(Discord bot 地基 + adapter);v2.0 已封版(2026-06-09),live 進度見 v3.0-progress.md
-**當前 PR**: PR-D12 state 鏡射 public repo + 全 repo 轉 private 前置(過渡件)(shipping)
+**當前 PR**: PR-D12-hotfix actions/checkout@v4→v5(一行 CI fix)(shipping)
 **Next action**: merge 後 TEEMO 跑 V1-V5 驗收(V1 workflow 綠 → V2/V3 SOP 預演 → **V4 全 repo 轉 private**〔可逆〕→ V5 全面回歸);接 Sprint 23 DB1 nexw-discord-bot container。**R-001 已廢止 30 天設計凍結(2026-06-11 提前解凍,原至 2026-07-09)→ v3.0 即日動工**,建造期新需求進 v4.0 候選池。**v2.0 封版後續追(非 blocker,見 `v2.0-acceptance-report.md §3`):** KI-PR-5.4-B([Merge] 按鈕,v3.0 Sprint 26 DM4 順帶解)/ H6 Gate2 待 PAT `Checks:read` / H8b Flutter pipeline 待首客戶 / C1 briefing richer 待 L2 / koalo typesense healthcheck / registry housekeeping 2 項 / KI-update-detached-head / effort 值 / snapshot regex(CF4)。**v4.0 候選池:** 見 v3.0.md §5(自動商業 pipeline / AI 即時語音 / Client 頻道 …)。
 
 < KI-PR-5.4-B verification after PR-5.5.1: 2026-05-05T12:17:53Z -->
