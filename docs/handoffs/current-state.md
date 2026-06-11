@@ -1,6 +1,6 @@
 # NEXW 自動化系統 — Current State
 
-**Last updated:** 2026-06-11(PR-23.2 DB2 adapter 層〔Discord ↔ central〕shipping;PR-23.1-hotfix ✅ merged `de54c3b` #262;Sprint 23 進行中)
+**Last updated:** 2026-06-11(PR-23.3a dbot 讓名 + 命名空間 guard shipping;PR-23.2 DB2 adapter ✅ merged `1d1b233` #263〔真打 PASS,雙前台首次對照〕;Sprint 23 進行中)
 
 ## 1. 階段
 
@@ -23,10 +23,11 @@
 - **Sprint 16 ✅ Closed at 2026-06-08**(close report:[sprint-16-close-report.md](../sprints/sprint-16-close-report.md))— C1 Daily Briefing(每日各專案近況 Haiku 合成 → TG,失敗退純格式)+ H6 Auto Merge 4 道防護(merge 前 gate:no-conflict + tests-pass + human approval + DoD)+ H8b Flutter prompt readiness(pipeline 自動化延後至接第一個 Flutter 客戶)。3 PR 全 merged #236-#238。
 - **當前 Sprint:** **v3.0 階段 — Sprint 23 待開工**(Discord bot 地基 + central adapter)。v2.0 已封版(2026-06-09,18 Sprint 4-21 / 16-16 active 100%);**R-001 於 2026-06-11 廢止 30 天設計凍結提前解凍**(原至 2026-07-09)→ v3.0 即日動工,建造期新需求進 v4.0 候選池。live 進度見 [v3.0-progress.md](../sprints/v3.0-progress.md)。
 - **設計凍結:** 2026-06-09 啟動,30 天(至 2026-07-09)。期間新需求一律進 v3.0 候選池(`v2.0.md §13`,現 5 條:圖影片 model / 四種 PPT C3-C6 / D1 footer / B3 Proactive / A3 W-only 整合),**不擾動 v2.0**。凍結期滿評估候選池排 v3.0。
-- **當前 PR:** PR-23.2 DB2 adapter 層(shipping;runtime-wired)— Discord ↔ central 引擎轉接頭 + `/system_version` 唯讀打通。引擎 0 重寫(情況 A,adapter 直接 import 核心);Discord-native gate / 渲染 / chunk(2000)皆不複用 TG 域。compose dbot 補掛 /repo:ro;main.py sys.path 插 /repo/central(import version)
-- **Next action:** PR-23.2 merge 後 TEEMO:rebuild `discord-bot`(--no-cache)→ up → L18 smoke(Up + login 無 traceback)→ **Discord 真打 `/system_version`**(與 TG @NEXW_Central_Bot 同指令內容**對照一致**;git 段不空白 = /repo 掛載成功,雙前台第一次對照)。失敗回滾 stop discord-bot。接 PR-23.3+(DB3/DB4)
+- **當前 PR:** PR-23.3a dbot 讓名 config→dbot_config + 保留字 guard(shipping;行為 0 改變)— 命名空間定案題落地方案 A:dbot 側讓名,「config」整個讓給 central(扁平命名空間);`test_namespace_guard.py` 動態 ∩ central 頂層名回歸鎖封死未來撞名
+- **Next action:** PR-23.3a merge 後 TEEMO:rebuild `discord-bot`(--no-cache)→ up → L18 smoke → ping/`/system_version` 快驗無 regression(純改名)。**命名空間定案題已收(方案 A),DB3 可動工。** 接 PR-23.3(DB3 Idea Inbox)
 - **(shipping)PR-23.1** DB1 nexw-discord-bot container 骨架 — 新 `dbot/`(⚠️ 不叫 discord/,防套件撞名):config.py(token `/data/secrets/bot-tokens/discord.txt` 釘死 + `/data/discord-config.json` guild_id/channels 驗證,缺檔 ConfigError)+ main.py(discord.py gateway;intents message_content+members;on_ready mapping sanity check〔包含比對,WARNING 不 crash〕→ agent-測試區上線訊息〔版本/sha/時間〕;ping/@bot → pong+時間戳)+ Dockerfile(python:3.12-slim,COPY *.py 慣例,ARG GIT_SHA,無 HEALTHCHECK)+ requirements(discord.py>=2.4,<3)。compose 新 `discord-bot` service(central-bot 同型:/srv/bot-state:/data rw;無 Traefik/healthcheck/port;既有 5 services 0 改)。12 測綠(config 層;gateway 屬真打)。TG 0 擾動。⚠️ **runtime-wired → merge 後 rebuild + L18 smoke + Discord 真打**。
-- **(已 merged)PR-23.1-hotfix** dbot config snowflake 寬容化 ✅ merged `de54c3b`(#262)真打 PASS — `coerce_snowflake` 套 guild_id/channel id;helper PR-23.2 admin_user_ids 複用。
+- **(已 merged)PR-23.2** DB2 adapter 層 ✅ merged `1d1b233`(#263)真打 PASS — Discord ↔ central 引擎,`/system_version` 雙前台首次對照一致。merge 前 §4 抓到 config 撞名 insert(0) bug → 改 append + 回歸鎖,修正後最終態進 main。命名空間根治 = PR-23.3a 讓名 config→dbot_config（方案 A）。
+- **(已 merged)PR-23.1-hotfix** dbot config snowflake 寬容化 ✅ merged `de54c3b`(#262)真打 PASS — `coerce_snowflake` 套 guild_id/channel id。
 - **(已 merged)PR-23.1** DB1 nexw-discord-bot container 骨架 ✅ merged `eefd023`(#261)真打 PASS(bot 上線 + ping→pong)。
 - **(候選 lesson,留 catalog 評估)R6 教訓:** sandbox 看不到 host 落檔的 schema → 凡手動落檔的 config,spec 必須釘死每個欄位「型別」(snowflake 慣寫字串)。
 - **(已 merged)PR-D12-hotfix** actions/checkout@v4→v5 ✅ merged `0fff2c0`(#260)— state-mirror workflow checkout 升版(Node 24);V1-V5 驗收照 PR-D12 流程。
@@ -834,9 +835,9 @@ V7-V16 Recon 才確認真實 cause 是 TG token polling 衝突。
 
 ---
 
-**Last updated**: 2026-06-11(PR-23.2 DB2 adapter 層 shipping;PR-23.1-hotfix ✅ merged `de54c3b` #262;Sprint 23 進行中)
+**Last updated**: 2026-06-11(PR-23.3a dbot 讓名 + 命名空間 guard shipping;PR-23.2 ✅ merged `1d1b233` #263;Sprint 23 進行中)
 **當前 Sprint**: v3.0 階段 — Sprint 23 進行中(Discord bot 地基 + adapter);v2.0 已封版(2026-06-09),live 進度見 v3.0-progress.md
-**當前 PR**: PR-23.2 DB2 adapter 層(Discord ↔ central,/system_version 唯讀)(shipping)
-**Next action**: PR-23.2 merge 後 rebuild `discord-bot` + L18 smoke + `/system_version` 真打(與 TG 同指令對照,git 段不空白);接 PR-23.3+(DB3/DB4)。PR-D12 V1-V5 驗收(轉 private)依既排程推進。**R-001 已廢止 30 天設計凍結(2026-06-11 提前解凍,原至 2026-07-09)→ v3.0 即日動工**,建造期新需求進 v4.0 候選池。**v2.0 封版後續追(非 blocker,見 `v2.0-acceptance-report.md §3`):** KI-PR-5.4-B([Merge] 按鈕,v3.0 Sprint 26 DM4 順帶解)/ H6 Gate2 待 PAT `Checks:read` / H8b Flutter pipeline 待首客戶 / C1 briefing richer 待 L2 / koalo typesense healthcheck / registry housekeeping 2 項 / KI-update-detached-head / effort 值 / snapshot regex(CF4)。**v4.0 候選池:** 見 v3.0.md §5(自動商業 pipeline / AI 即時語音 / Client 頻道 …)。
+**當前 PR**: PR-23.3a dbot 讓名 config→dbot_config + 命名空間 guard(shipping)
+**Next action**: PR-23.3a merge 後 rebuild `discord-bot` + L18 smoke + ping/`/system_version` 快驗無 regression;命名空間定案題已收,接 PR-23.3(DB3 Idea Inbox)。PR-D12 V1-V5 驗收(轉 private)依既排程推進。**R-001 已廢止 30 天設計凍結(2026-06-11 提前解凍,原至 2026-07-09)→ v3.0 即日動工**,建造期新需求進 v4.0 候選池。**v2.0 封版後續追(非 blocker,見 `v2.0-acceptance-report.md §3`):** KI-PR-5.4-B([Merge] 按鈕,v3.0 Sprint 26 DM4 順帶解)/ H6 Gate2 待 PAT `Checks:read` / H8b Flutter pipeline 待首客戶 / C1 briefing richer 待 L2 / koalo typesense healthcheck / registry housekeeping 2 項 / KI-update-detached-head / effort 值 / snapshot regex(CF4)。**v4.0 候選池:** 見 v3.0.md §5(自動商業 pipeline / AI 即時語音 / Client 頻道 …)。
 
 < KI-PR-5.4-B verification after PR-5.5.1: 2026-05-05T12:17:53Z -->
