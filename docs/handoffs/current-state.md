@@ -1,6 +1,6 @@
 # NEXW 自動化系統 — Current State
 
-**Last updated:** 2026-06-11(PR-23.3a-hotfix dbot Dockerfile 補 git shipping;PR-23.3a 讓名+guard ✅ merged `52648b1` #264;Sprint 23 進行中)
+**Last updated:** 2026-06-12(PR-23.3 DB3-A1 boss-inbox → Idea Inbox shipping;PR-23.3a-hotfix 補 git ✅ merged `d9bbab2` #265;Sprint 23 進行中)
 
 ## 1. 階段
 
@@ -23,9 +23,11 @@
 - **Sprint 16 ✅ Closed at 2026-06-08**(close report:[sprint-16-close-report.md](../sprints/sprint-16-close-report.md))— C1 Daily Briefing(每日各專案近況 Haiku 合成 → TG,失敗退純格式)+ H6 Auto Merge 4 道防護(merge 前 gate:no-conflict + tests-pass + human approval + DoD)+ H8b Flutter prompt readiness(pipeline 自動化延後至接第一個 Flutter 客戶)。3 PR 全 merged #236-#238。
 - **當前 Sprint:** **v3.0 階段 — Sprint 23 待開工**(Discord bot 地基 + central adapter)。v2.0 已封版(2026-06-09,18 Sprint 4-21 / 16-16 active 100%);**R-001 於 2026-06-11 廢止 30 天設計凍結提前解凍**(原至 2026-07-09)→ v3.0 即日動工,建造期新需求進 v4.0 候選池。live 進度見 [v3.0-progress.md](../sprints/v3.0-progress.md)。
 - **設計凍結:** 2026-06-09 啟動,30 天(至 2026-07-09)。期間新需求一律進 v3.0 候選池(`v2.0.md §13`,現 5 條:圖影片 model / 四種 PPT C3-C6 / D1 footer / B3 Proactive / A3 W-only 整合),**不擾動 v2.0**。凍結期滿評估候選池排 v3.0。
-- **當前 PR:** PR-23.3a-hotfix dbot Dockerfile 補 git binary(shipping)— 真打發現 `/system_version` git 段全「不可讀」:23.1 slim base 未裝 git,version.py subprocess `git -C /repo` executable not found(掛載正常,缺 binary)。照 central 慣例補 apt git。23.2 真打驗收漏網(雙前台對照未逐字核 git 段)
-- **Next action:** PR-23.3a-hotfix merge 後 TEEMO:rebuild `discord-bot`(`--no-cache`,讓 git 進 image)→ up → `/system_version` 真打**逐字核 git 段**(commit/branch 有值、與 TG 一致 = 修復確認)。接 PR-23.3(DB3 Idea Inbox)
+- **當前 PR:** PR-23.3 DB3-A1 🧠 boss-inbox 老闆指令入口 → Idea Inbox(shipping `52c2700`)— **裁定 A1 only**:🧠 boss-inbox 自由文字 → `idea_entry.py`(discord-free 核心)→ `idea_inbox.classify_idea` 分類 → 存 inbox → ack(分類+id)+ 部門回貼。分類→部門對照(feature/idea/question→dept-pm-product;bug/infra→dept-dev-tech;unclassified→留 boss-inbox 不回貼,ack 註明未分類)。admin gate(非 admin 靜默忽略)。引擎 0 改只接 I/O。A2 多輪展開另案 PR-23.3b。
+- **Next action:** PR-23.3 merge 後 TEEMO:rebuild `discord-bot`(`--no-cache`)→ up → 真打:在 🧠 boss-inbox 丟「明確分類想法」驗 ① ack 帶分類+id ② 回貼對應部門頻道。**⚠️ classify 探針**:sandbox 核不到 `LITELLM_MASTER_KEY`,且 `classify_idea` 失敗模式無聲(全吞例外→unclassified)→ 若真打回 unclassified,**第一懷疑 env 缺件(LITELLM_MASTER_KEY/provider key),非模型判錯**。接 PR-23.3b(A2 多輪)
 - **(shipping)PR-23.1** DB1 nexw-discord-bot container 骨架 — 新 `dbot/`(⚠️ 不叫 discord/,防套件撞名):config.py(token `/data/secrets/bot-tokens/discord.txt` 釘死 + `/data/discord-config.json` guild_id/channels 驗證,缺檔 ConfigError)+ main.py(discord.py gateway;intents message_content+members;on_ready mapping sanity check〔包含比對,WARNING 不 crash〕→ agent-測試區上線訊息〔版本/sha/時間〕;ping/@bot → pong+時間戳)+ Dockerfile(python:3.12-slim,COPY *.py 慣例,ARG GIT_SHA,無 HEALTHCHECK)+ requirements(discord.py>=2.4,<3)。compose 新 `discord-bot` service(central-bot 同型:/srv/bot-state:/data rw;無 Traefik/healthcheck/port;既有 5 services 0 改)。12 測綠(config 層;gateway 屬真打)。TG 0 擾動。⚠️ **runtime-wired → merge 後 rebuild + L18 smoke + Discord 真打**。
+- **(shipping)PR-23.3** DB3-A1 🧠 boss-inbox → Idea Inbox(`52c2700`)— A1 only(A2=23.3b)。新 `dbot/idea_entry.py`(discord-free 核心,比照 render.py 可單測):`handle_boss_idea` → daily-limit → `idea_inbox.classify_idea`(Haiku;失敗→unclassified 引擎自兜底)→ `add_idea_to_inbox` → `IdeaEntryResult`(ack + 可選部門回貼)。分類→部門對照(feature/idea/question→dept-pm-product;bug/infra→dept-dev-tech;unclassified→fallback 候選 1:留 boss-inbox 不回貼)。`main.py` on_ready 解析 boss-inbox id + on_message boss-inbox 分支(排在 agent-測試區 ping 之前)+ admin gate(非 admin 靜默忽略)+ `_send_to_key` chunk 2000 回貼。`idea_entry` 帶 `inbox_path` 測試接縫(`idea_inbox` 的 `path=` 預設引數 import 時綁定 → monkeypatch 不重導 → 測試顯式餵 tmp;production None→引擎預設)。引擎 0 改只接 I/O。3 層綠(ruff / 57 pytest / py_compile)。⚠️ **runtime-wired → merge 後 rebuild + Discord 真打**(含 classify 探針,見 Next action)。
+- **(已 merged)PR-23.3a-hotfix** dbot Dockerfile 補 git binary ✅ merged `d9bbab2`(#265)— 真打發現 `/system_version` git 段全「不可讀」:slim base 未裝 git → version.py subprocess `git -C /repo` executable not found(掛載正常,缺 binary)。照 central 慣例補 apt git。
 - **(已 merged)PR-23.3a** dbot 讓名 config→dbot_config + 保留字 guard ✅ merged `52648b1`(#264)— 命名空間定案題收口(方案 A)。
 - **(已 merged)PR-23.2** DB2 adapter 層 ✅ merged `1d1b233`(#263)真打 PASS — Discord ↔ central 引擎,`/system_version` 雙前台首次對照。merge 前 §4 抓 config 撞名 insert(0) bug → append + 回歸鎖。
 - **(已 merged)PR-23.1-hotfix** dbot config snowflake 寬容化 ✅ merged `de54c3b`(#262)真打 PASS — `coerce_snowflake` 套 guild_id/channel id。
@@ -506,6 +508,21 @@ deploy-bot 的 `/srv/projects/nexw-deploy-bot` checkout 曾停在 PR-7.6 feature
 - 加開機自動重建 script(systemd unit 啟動時驗證 venv 存在)
 - 留 Sprint 8+ 與其他 infra 紀律一起處理
 
+**KI-idea-inbox-concurrent-write(NEW,LOW-MED,2026-06-12 PR-23.3 R3/R4 recon 記錄,只記不修)**
+
+dbot 與 central-bot 兩前台共寫同一份 conversation / budget state(掛同一個 `/data`)。`memory_layer/conversation.add_idea`(idea 入 inbox)與 `budget.track_usage`(classify 花費)都走 **load-modify-save**(`atomic_write_json` 原子換檔,但**無跨行程鎖**)。兩前台若**同一瞬間**各自寫入 → 後寫者覆蓋先寫者的中間態 = lost-update(掉一筆 idea / 漏記一次花費)。
+
+- **觸發前提:** dbot + central-bot 並發寫同一檔的競態窗口(秒級);單前台或人類手動間隔操作不會中。實務一人公司低頻 → 機率 LOW-MED。
+- **裁示(2026-06-11):** R3/R4 **只記 KI 不修**(PR-23.3 引擎 0 改紀律;修需引擎層加 file-lock/advisory-lock,屬獨立 PR)。
+- **Follow-up:** 評估引擎層 `add_idea`/`track_usage` 加 `fcntl.flock` advisory lock 或單寫者佇列。留 Sprint 24+ 與總控自動化(多寫者增加)一起處理。
+
+**KI-system-version-design-symlink-absent(NEW,LOW,2026-06-12 PR-23.3 recon 順手發現)**
+
+`version.py:get_design_version()` 讀 `docs/automation/current` symlink 取設計版本 stem(如 `v2.0`)。**repo 內無此 symlink**(`docs/automation/` 只有 `v1.0.md`/`v2.0.md`/`v3.0.md` 實檔)→ `readlink` 失敗 → 回 `None` → `/system_version` 設計版本段顯示 unknown / sync_status=unknown。v3.0 尚未建立 design 版本符號連結。
+
+- **影響:** `/system_version`(TG + Discord 雙前台)設計版本段恆 unknown;**不影響** bot 版本 / git 段 / 任何功能,純展示缺欄。
+- **Follow-up:** 評估 v3.0 是否建 `docs/automation/current → v3.0.md` 並 git track(或由 server 維護);順帶補 `get_sync_status` 真比對(現 PR-1.3 hardcode "aligned")。留設計版本治理一起處理。
+
 ---
 
 **snapshot.sh 段 4 glob 防爆 bug**(2026-05-01 接手測試發現,本 PR 修)
@@ -838,9 +855,9 @@ V7-V16 Recon 才確認真實 cause 是 TG token polling 衝突。
 
 ---
 
-**Last updated**: 2026-06-11(PR-23.3a-hotfix dbot Dockerfile 補 git shipping;PR-23.3a ✅ merged `52648b1` #264;Sprint 23 進行中)
+**Last updated**: 2026-06-12(PR-23.3 DB3-A1 boss-inbox → Idea Inbox shipping;PR-23.3a-hotfix 補 git ✅ merged `d9bbab2` #265;Sprint 23 進行中)
 **當前 Sprint**: v3.0 階段 — Sprint 23 進行中(Discord bot 地基 + adapter);v2.0 已封版(2026-06-09),live 進度見 v3.0-progress.md
-**當前 PR**: PR-23.3a-hotfix dbot Dockerfile 補 git(/system_version git 段修復)(shipping)
-**Next action**: PR-23.3a-hotfix merge 後 rebuild `discord-bot`(--no-cache)+ `/system_version` 真打逐字核 git 段(commit/branch 有值=修復確認);接 PR-23.3(DB3 Idea Inbox)。PR-D12 V1-V5 驗收(轉 private)依既排程推進。**R-001 已廢止 30 天設計凍結(2026-06-11 提前解凍,原至 2026-07-09)→ v3.0 即日動工**,建造期新需求進 v4.0 候選池。**v2.0 封版後續追(非 blocker,見 `v2.0-acceptance-report.md §3`):** KI-PR-5.4-B([Merge] 按鈕,v3.0 Sprint 26 DM4 順帶解)/ H6 Gate2 待 PAT `Checks:read` / H8b Flutter pipeline 待首客戶 / C1 briefing richer 待 L2 / koalo typesense healthcheck / registry housekeeping 2 項 / KI-update-detached-head / effort 值 / snapshot regex(CF4)。**v4.0 候選池:** 見 v3.0.md §5(自動商業 pipeline / AI 即時語音 / Client 頻道 …)。
+**當前 PR**: PR-23.3 DB3-A1 🧠 boss-inbox 老闆指令入口 → Idea Inbox(A1 only;A2=PR-23.3b)(shipping `52c2700`)
+**Next action**: PR-23.3 merge 後 rebuild `discord-bot`(--no-cache)+ Discord 真打:🧠 boss-inbox 丟「明確分類想法」驗 ack 帶分類+id + 回貼部門頻道(⚠️ classify 探針:回 unclassified 第一懷疑 `LITELLM_MASTER_KEY`/provider key env 缺件,非模型判錯);接 PR-23.3b(A2 多輪)。PR-D12 V1-V5 驗收(轉 private)依既排程推進。**R-001 已廢止 30 天設計凍結(2026-06-11 提前解凍,原至 2026-07-09)→ v3.0 即日動工**,建造期新需求進 v4.0 候選池。**v2.0 封版後續追(非 blocker,見 `v2.0-acceptance-report.md §3`):** KI-PR-5.4-B([Merge] 按鈕,v3.0 Sprint 26 DM4 順帶解)/ H6 Gate2 待 PAT `Checks:read` / H8b Flutter pipeline 待首客戶 / C1 briefing richer 待 L2 / koalo typesense healthcheck / registry housekeeping 2 項 / KI-update-detached-head / effort 值 / snapshot regex(CF4)。**v4.0 候選池:** 見 v3.0.md §5(自動商業 pipeline / AI 即時語音 / Client 頻道 …)。
 
 < KI-PR-5.4-B verification after PR-5.5.1: 2026-05-05T12:17:53Z -->
